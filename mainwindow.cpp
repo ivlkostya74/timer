@@ -3,16 +3,16 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    timer(new QTimer(this))
+    ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    // Подключаем таймер к функции обновления дисплея
-    connect(timer, &QTimer::timeout, this, &MainWindow::updateDisplay);
+    // Подключаем сигнал обновления времени от секундомера к слоту обновления метки времени
+    connect(&stopwatch, &Stopwatch::timeUpdated, this, &MainWindow::updateDisplay);
 
     // Изначально кнопка кругов неактивна
     ui->lapButton->setEnabled(false);
+    ui->clearButton->setEnabled(false);
 }
 
 MainWindow::~MainWindow()
@@ -26,15 +26,15 @@ void MainWindow::on_startStopButton_clicked()
     if (stopwatch.isRunning()) {
         // Останавливаем секундомер
         stopwatch.stop();
-        timer->stop();
         ui->startStopButton->setText("Старт");
-        ui->lapButton->setEnabled(false);  // Отключаем кнопку кругов
+        ui->lapButton->setEnabled(false);        // Отключаем кнопку кругов
+         ui->clearButton->setEnabled(true);
     } else {
         // Запускаем секундомер
         stopwatch.start();
-        timer->start(100); // Обновляем каждую 0.1 сек
         ui->startStopButton->setText("Стоп");
         ui->lapButton->setEnabled(true);   // Включаем кнопку кругов
+        ui->clearButton->setEnabled(false);
     }
 }
 
@@ -49,28 +49,21 @@ void MainWindow::on_lapButton_clicked()
 // Кнопка "Очистить"
 void MainWindow::on_clearButton_clicked()
 {
-    // Сбрасываем состояние секундомера
+    // Очищаем отображаемое время и круги
     stopwatch.reset();
+    ui->textBrowser->clear(); // Очищаем текстовый браузер (список кругов)
 
-    // Сбрасываем отображаемое время на 0
-    ui->timeLabel2->setText("0.0");
-
-    // Очищаем текстовый браузер (список кругов)
-    ui->textBrowser->clear();
-
-    // Отключаем кнопку для записи кругов
-    ui->lapButton->setEnabled(false);
-
-    // Возвращаем кнопку "Старт/Стоп" в начальное состояние "Старт"
-    ui->startStopButton->setText("Старт");
-
-    // Останавливаем таймер
-    timer->stop();
+    // Кнопка для записи кругов остаётся активной, если секундомер продолжает работать
+    if (stopwatch.isRunning()) {
+        ui->lapButton->setEnabled(true);
+    } else {
+        ui->lapButton->setEnabled(false);
+    }
 }
 
 // Обновление дисплея времени
-void MainWindow::updateDisplay()
+void MainWindow::updateDisplay(qreal time)
 {
     // Обновляем метку времени
-    ui->timeLabel2->setText(QString::number(stopwatch.elapsedTime(), 'f', 1));
+    ui->timeLabel2->setText(QString::number(time, 'f', 1));
 }

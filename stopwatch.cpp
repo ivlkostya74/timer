@@ -2,8 +2,12 @@
 
 Stopwatch::Stopwatch()
     : previousLapTime(0),
-    running(false)
+    running(false),
+    currentTime(0)
 {
+    // Настраиваем таймер на обновление времени каждые 100 мс (0.1 сек)
+    connect(&timer, &QTimer::timeout, this, &Stopwatch::updateTime);
+    timer.setInterval(100); // Устанавливаем интервал 0.1 сек
 }
 
 void Stopwatch::start()
@@ -17,23 +21,27 @@ void Stopwatch::start()
 void Stopwatch::stop()
 {
     if (running) {
-        previousLapTime += timer.elapsed() / 1000.0;
+        timer.stop();
         running = false;
     }
 }
 
 void Stopwatch::reset()
 {
+    // Сбрасываем все данные
+    timer.stop();
+    running = false;
+    currentTime = 0;
     previousLapTime = 0;
     lapTimes.clear();
-    running = false;
+    emit timeUpdated(0); // Сообщаем, что время сброшено
 }
 
 int Stopwatch::lap()
 {
-    qreal currentLapTime = elapsedTime();
-    lapTimes.append(currentLapTime - previousLapTime);
-    previousLapTime = currentLapTime;
+    qreal lapTime = currentTime - previousLapTime;
+    lapTimes.append(lapTime);
+    previousLapTime = currentTime;
     return lapTimes.size();
 }
 
@@ -52,9 +60,11 @@ bool Stopwatch::isRunning() const
 
 qreal Stopwatch::elapsedTime() const
 {
-    if (running) {
-        return previousLapTime + timer.elapsed() / 1000.0;
-    } else {
-        return previousLapTime;
-    }
+    return currentTime;
+}
+
+void Stopwatch::updateTime()
+{
+    currentTime += 0.1; // Увеличиваем текущее время на 0.1 секунды
+    emit timeUpdated(currentTime); // Сообщаем об обновлении времени
 }

@@ -1,11 +1,14 @@
 #ifndef STOPWATCH_H
 #define STOPWATCH_H
 
-#include <QElapsedTimer>
+#include <QTimer>
 #include <QVector>
+#include <QObject>
 
-class Stopwatch
+class Stopwatch : public QObject
 {
+    Q_OBJECT
+
 public:
     Stopwatch();
 
@@ -17,11 +20,18 @@ public:
     bool isRunning() const;
     qreal elapsedTime() const; // Возвращает текущее время
 
+signals:
+    void timeUpdated(qreal time); // Сигнал для обновления времени
+
+private slots:
+    void updateTime(); // Слот для обновления времени
+
 private:
-    QElapsedTimer timer;
+    QTimer timer;           // Таймер для отсчета времени
     QVector<qreal> lapTimes; // Список времен кругов
     qreal previousLapTime;   // Время предыдущего круга
     bool running;            // Флаг состояния секундомера
+    qreal currentTime;       // Текущее время
 };
 
 #endif // STOPWATCH_H

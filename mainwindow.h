@@ -21,7 +21,7 @@ private slots:
     void on_startStopButton_clicked();
     void on_lapButton_clicked();
     void on_clearButton_clicked();
-    void updateDisplay(); // Слот для обновления времени
+    void updateDisplay(qreal time); // Слот для обновления времени
 
 private:
     Ui::MainWindow *ui;
